@@ -287,9 +287,17 @@ where seat_no = 'B1'
 
 select * from flight;
 
+-- 4.	Сколько мест осталось незанятыми 2020-06-14 на рейсе MN3002?
+
 select t.flight_id from ticket t join flight f on f.id = t.flight_id where f.flight_no = 'NM3002' and f.departure_date::date = '2023-01-25'::date group by t.flight_id;
 
+-- 5.	Какие 2 перелета были самые длительные за все время?
+
+
 select  f.id, f.arrival_date::date, f.departure_date::date, f.arrival_date - f.departure_date from flight f order by (f.arrival_date - f.departure_date) desc ;
+
+-- 6.	Какая максимальная и минимальная продолжительность перелетов между Минском и Лондоном
+-- и сколько было всего таких перелетов?
 
 select f.id, first_value(f.arrival_date - f.departure_date) over ( order by (f.arrival_date - f.departure_date)) from flight f
                                                                                                                           join airport a on f.arrival_airport_code = a.code
@@ -298,8 +306,45 @@ where a.city='Лондон'
   and d.city='Минск';
 
 
+-- 7.	Какие имена встречаются чаще всего и какую долю от числа всех пассажиров они составляют?
 
 select t.passenger_name, count(*), round(100.0 * count(*) / (select count(*) from ticket) - count(*),2)
 from ticket t
 group by t.passenger_name
 order by 2 desc;
+
+-- 8.	Вывести имена пассажиров, сколько всего каждый с таким именем купил билетов,
+-- а также на сколько это количество меньше от того имени пассажира, кто купил билетов больше всего
+select t1.*,
+       first_value(t1.cnt) over () - t1.cnt
+from (
+         select t.passenger_no,
+                t.passenger_name,
+                count(*) cnt
+         from ticket t
+         group by t.passenger_no, t.passenger_name
+         order by 3 desc) t1;
+
+-- 9.	Вывести стоимость всех маршрутов по убыванию.
+-- Отобразить разницу в стоимости между текущим и ближайшими в отсортированном списке маршрутами
+
+select t1.*,
+       COALESCE(lead(t1.sum_cost) OVER(order by t1.sum_cost), t1.sum_cost) - t1.sum_cost
+from (
+         select t.flight_id,
+                sum(t.cost) sum_cost
+         from ticket t
+         group by t.flight_id
+         order by 2 desc) t1;
+
+
+
+values (1, '2'), (3, '4'), (5, '6'), (7, '8')
+except
+values (1, '2'), (2, '4'), (5, '6'), (7, '9');
+
+
+select id
+from ticket
+where id = 29;
+
