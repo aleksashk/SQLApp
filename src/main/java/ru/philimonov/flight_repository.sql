@@ -296,3 +296,10 @@ select f.id, first_value(f.arrival_date - f.departure_date) over ( order by (f.a
                                                                                                                           join airport d on f.departure_airport_code = d.code
 where a.city='Лондон'
   and d.city='Минск';
+
+
+
+select t.passenger_name, count(*), round(100.0 * count(*) / (select count(*) from ticket) - count(*),2)
+from ticket t
+group by t.passenger_name
+order by 2 desc;
